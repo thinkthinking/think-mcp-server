@@ -34,6 +34,9 @@ async def analyze_file_content(file_path: str) -> dict:
             raise ValueError("content_analyzer_prompt_path environment variable not set")
         logger.debug("Using prompt template from: %s", prompt_path)
         
+        # 展开路径中的 ~ 符号
+        prompt_path = os.path.expanduser(prompt_path)
+        
         if not os.path.exists(prompt_path):
             logger.error("Prompt template file not found at: %s", prompt_path)
             raise FileNotFoundError(f"Prompt template file not found at: {prompt_path}")

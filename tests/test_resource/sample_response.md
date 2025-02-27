@@ -1,5 +1,5 @@
 ---
-description: 【技术文档】解决文档分析中的错误提示问题，通过标准化框架生成精准摘要，达到简明扼要、信息完整的效果。
+description: 'Error analyzing content: Prompt template file not found at: ~/.think-mcp-server/resources/tool_content_analyzer_prompt.md'
 name: sample_response
 ---
 # Sample Markdown Response

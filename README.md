@@ -90,4 +90,4 @@ MIT
 
 ## 作者
 
-- 叶震杰 (yezhenjie@outlook.de)
+- thinkthinking (yezhenjie@outlook.de)
