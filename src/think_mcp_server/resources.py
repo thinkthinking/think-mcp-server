@@ -32,27 +32,28 @@ def parse_frontmatter(content: str) -> tuple[Optional[Dict], str]:
         return None, content
 
 def list_resources() -> List[types.Resource]:
-    """List available resources from prompt directories."""
+    """List available resources from resources directory."""
     resources = []
 
-    # 从环境变量获取 prompt 目录路径列表
-    prompt_dirs_str = os.getenv('RESOURCES_PROMPTS_PATH', '')
-    if not prompt_dirs_str:
-        logger.warning("RESOURCES_PROMPTS_PATH not set in .env file")
+    # 从环境变量获取资源目录路径
+    resources_path = os.getenv('resources_path', '')
+    if not resources_path:
+        logger.warning("resources_path not set in .env file")
         return resources
 
-    # 处理所有的 prompt 目录
-    for prompt_dir in prompt_dirs_str.split(','):
-        prompt_dir = prompt_dir.strip()
-        if not prompt_dir:
+    # 处理所有的资源目录
+    for resource_dir in resources_path.split(','):
+        resource_dir = resource_dir.strip()
+        if not resource_dir:
             continue
             
-        base_dir = Path(prompt_dir)
+        # 使用 Path 对象处理路径，确保 ~ 路径被正确展开
+        base_dir = Path(os.path.expanduser(resource_dir))
         if not base_dir.exists():
-            logger.warning(f"Prompt directory does not exist: {prompt_dir}")
+            logger.warning(f"资源目录不存在: {resource_dir}")
             continue
 
-        # 添加 prompt 目录中的文件
+        # 添加资源目录中的文件
         for file_path in sorted(base_dir.glob("*")):
             if file_path.is_file():
                 absolute_path = file_path.absolute()
@@ -65,8 +66,8 @@ def list_resources() -> List[types.Resource]:
                     decoded_file_name = urllib.parse.unquote(file_name)
                     
                     description = (
-                        frontmatter.get('description', f"Prompt file: {decoded_file_name}")
-                        if frontmatter else f"Prompt file: {decoded_file_name}"
+                        frontmatter.get('description', f"Resource file: {decoded_file_name}")
+                        if frontmatter else f"Resource file: {decoded_file_name}"
                     )
                     
                     resources.append(
@@ -78,7 +79,7 @@ def list_resources() -> List[types.Resource]:
                         )
                     )
                 except Exception as e:
-                    logger.warning(f"Failed to process file {file_path}: {e}")
+                    logger.warning(f"处理文件 {file_path} 失败: {e}")
 
     return sorted(resources, key=lambda x: x.name)
 

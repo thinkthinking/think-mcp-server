@@ -51,7 +51,7 @@ def load_prompt_from_file(file_path: Path) -> Optional[types.Prompt]:
             arguments=arguments
         )
     except Exception as e:
-        logger.error("Error loading prompt from %s: %s", file_path, str(e))
+        logger.error("加载提示词文件 %s 失败: %s", file_path, str(e))
         return None
 
 
@@ -61,28 +61,30 @@ def load_all_prompts():
     loaded_prompts.clear()
 
     # Get prompt directory from environment variable
-    prompt_path = os.getenv('PROMPTS_PATH')
+    prompt_path = os.getenv('prompts_path')
     if not prompt_path:
-        logger.warning("PROMPTS_PATH not set in .env file")
+        logger.warning("prompts_path 未在 .env 文件中设置")
         return
 
-    prompt_dir = Path(prompt_path)
+    # 确保 ~ 路径被正确展开
+    prompt_dir = Path(os.path.expanduser(prompt_path))
     if not prompt_dir.exists() or not prompt_dir.is_dir():
         logger.warning(
-            "Prompt directory %s does not exist or is not a directory", prompt_dir)
+            "提示词目录 %s 不存在或不是一个目录", prompt_dir)
         return
 
     # Load all .md files from the prompt directory
     for file_path in sorted(prompt_dir.glob("*.md")):
         if prompt := load_prompt_from_file(file_path):
             loaded_prompts[prompt.name] = prompt
+            logger.info("加载提示词: %s", prompt.name)
 
 
 def replace_variables(content: str, arguments: Dict[str, str]) -> str:
     """Replace variables in content with their values."""
-    # Replace {{today}} with current date
+    # 替换 {{today}} 为当前日期
     content = content.replace("{{今天}}", datetime.now().strftime("%Y-%m-%d"))
-
+    
     # Replace other variables from arguments
     for key, value in arguments.items():
         content = content.replace(f"{{{{{key}}}}}", str(value))
@@ -98,23 +100,43 @@ def get_prompt_result(name: str, arguments: dict[str, str] | None) -> types.GetP
     prompt = loaded_prompts[name]
 
     # 获取 prompt 文件路径
-    prompt_path = os.getenv('PROMPTS_PATH')
+    prompt_path = os.getenv('prompts_path')
     if not prompt_path:
-        raise ValueError("PROMPTS_PATH not set in .env file")
+        raise ValueError("prompts_path 未在 .env 文件中设置")
 
-    prompt_dir = Path(prompt_path)
+    # 确保 ~ 路径被正确展开
+    prompt_dir = Path(os.path.expanduser(prompt_path))
     prompt_file = prompt_dir / f"{name}.md"
+
+    # 如果文件不存在，尝试加载同名的模板文件
+    if not prompt_file.exists():
+        for file_path in prompt_dir.glob("*.md"):
+            content = file_path.read_text(encoding='utf-8')
+            try:
+                front_matter, _ = parse_front_matter(content)
+                if front_matter.get('name') == name:
+                    prompt_file = file_path
+                    break
+            except Exception:
+                continue
 
     if not prompt_file.exists():
         raise ValueError(f"Prompt file for '{name}' not found")
 
-    # 读取文件内容并解析
+    # 读取文件内容
     content = prompt_file.read_text(encoding='utf-8')
     _, prompt_content = parse_front_matter(content)
 
-    # 替换变量
-    processed_content = replace_variables(prompt_content, arguments or {})
+    # 如果提供了参数，替换变量
+    if arguments:
+        # 验证必需参数
+        for arg in prompt.arguments:
+            if arg.required and arg.name not in arguments:
+                raise ValueError(f"Required argument '{arg.name}' not provided")
 
+        prompt_content = replace_variables(prompt_content, arguments)
+
+    # 返回 GetPromptResult 对象
     return types.GetPromptResult(
         description=prompt.description,
         messages=[
@@ -122,7 +144,7 @@ def get_prompt_result(name: str, arguments: dict[str, str] | None) -> types.GetP
                 role="user",
                 content=types.TextContent(
                     type="text",
-                    text=processed_content,
+                    text=prompt_content,
                 ),
             )
         ],

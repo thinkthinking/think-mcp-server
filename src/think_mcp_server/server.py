@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """MCP Server implementation."""
+import os
 from pathlib import Path
 from dotenv import load_dotenv
 from importlib.metadata import version, PackageNotFoundError
@@ -10,13 +11,15 @@ import mcp.server.stdio
 from pydantic import AnyUrl
 from think_llm_client.utils.logger import logging
 from . import tools, prompts, resources
+from .init import ensure_user_config_files
 
 # 获取日志记录器
 logger = logging.getLogger("think-mcp-server")
 
-# Load environment variables from config/.env file
-config_dir = Path(__file__).parent / 'config'
-env_path = config_dir / '.env'
+# 确保用户配置目录和文件存在，并获取 .env 文件路径
+env_path = ensure_user_config_files()
+
+# 加载环境变量
 logger.info("Loading environment variables from %s", env_path)
 load_dotenv(env_path)
 
