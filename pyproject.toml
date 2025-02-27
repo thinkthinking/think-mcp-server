@@ -1,6 +1,6 @@
 [project]
 name = "think-mcp-server"
-version = "0.4.1"
+version = "0.4.4"
 description = "thinkthinking's mcp server"
 readme = "README.md"
 requires-python = ">=3.12"

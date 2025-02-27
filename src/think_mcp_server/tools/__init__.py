@@ -35,6 +35,10 @@ async def list_tools() -> List[types.Tool]:
                         "type": "string",
                         "description": "Path to a file or directory"
                     },
+                    "update_after": {
+                        "type": "string",
+                        "description": "只更新指定日期之后的内容，格式为 'YYYY-MM-DD'，默认为 '2025-01-01'"
+                    }
                 },
                 "required": ["file_path"],
             },

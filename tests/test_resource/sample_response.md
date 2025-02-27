@@ -1,5 +1,6 @@
 ---
-description: 'Error analyzing content: Prompt template file not found at: ~/.think-mcp-server/resources/tool_content_analyzer_prompt.md'
+description: 【技术文档】解决文档分析模板缺失问题，通过识别错误信息并生成标准Markdown样例，达到规范内容格式、提升可读性的效果。
+edit_time: '2025-02-27'
 name: sample_response
 ---
 # Sample Markdown Response
