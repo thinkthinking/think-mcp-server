@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "think-mcp-server": {
+      "command": "/Users/thinkthinking/src_code/nas/think-mcp-server/.venv/bin/uv",
+      "args": [
+        "--directory",
+        "/Users/thinkthinking/src_code/nas/think-mcp-server",
+        "run",
+        "think-mcp-server"
+      ]
+    }
+  }
+}
