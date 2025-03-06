@@ -56,28 +56,31 @@ def load_prompt_from_file(file_path: Path) -> Optional[types.Prompt]:
 
 
 def load_all_prompts():
-    """Load all prompts from the configured directory."""
+    """Load all prompts from the configured directories."""
     global loaded_prompts
     loaded_prompts.clear()
 
-    # Get prompt directory from environment variable
-    prompt_path = os.getenv('prompts_path')
-    if not prompt_path:
+    # Get prompt directories from environment variable
+    prompt_paths = os.getenv('prompts_path')
+    if not prompt_paths:
         logger.warning("prompts_path 未在 .env 文件中设置")
         return
+    
+    # 支持多个路径，用逗号分隔
+    paths = [p.strip() for p in prompt_paths.split(',')]
+    
+    for prompt_path in paths:
+        # 确保 ~ 路径被正确展开
+        prompt_dir = Path(os.path.expanduser(prompt_path))
+        if not prompt_dir.exists() or not prompt_dir.is_dir():
+            logger.warning("提示词目录 %s 不存在或不是一个目录", prompt_dir)
+            continue
 
-    # 确保 ~ 路径被正确展开
-    prompt_dir = Path(os.path.expanduser(prompt_path))
-    if not prompt_dir.exists() or not prompt_dir.is_dir():
-        logger.warning(
-            "提示词目录 %s 不存在或不是一个目录", prompt_dir)
-        return
-
-    # Load all .md files from the prompt directory
-    for file_path in sorted(prompt_dir.glob("*.md")):
-        if prompt := load_prompt_from_file(file_path):
-            loaded_prompts[prompt.name] = prompt
-            logger.info("加载提示词: %s", prompt.name)
+        # Load all .md files from the prompt directory
+        for file_path in sorted(prompt_dir.glob("*.md")):
+            if prompt := load_prompt_from_file(file_path):
+                loaded_prompts[prompt.name] = prompt
+                logger.info("从 %s 加载提示词: %s", prompt_dir, prompt.name)
 
 
 def replace_variables(content: str, arguments: Dict[str, str]) -> str:
@@ -100,28 +103,40 @@ def get_prompt_result(name: str, arguments: dict[str, str] | None) -> types.GetP
     prompt = loaded_prompts[name]
 
     # 获取 prompt 文件路径
-    prompt_path = os.getenv('prompts_path')
-    if not prompt_path:
+    prompt_paths = os.getenv('prompts_path')
+    if not prompt_paths:
         raise ValueError("prompts_path 未在 .env 文件中设置")
-
-    # 确保 ~ 路径被正确展开
-    prompt_dir = Path(os.path.expanduser(prompt_path))
-    prompt_file = prompt_dir / f"{name}.md"
-
-    # 如果文件不存在，尝试加载同名的模板文件
-    if not prompt_file.exists():
+    
+    # 支持多个路径，用逗号分隔
+    paths = [p.strip() for p in prompt_paths.split(',')]
+    
+    # 在所有路径中查找提示词文件
+    prompt_file = None
+    for prompt_path in paths:
+        # 确保 ~ 路径被正确展开
+        prompt_dir = Path(os.path.expanduser(prompt_path))
+        temp_file = prompt_dir / f"{name}.md"
+        
+        if temp_file.exists():
+            prompt_file = temp_file
+            break
+        
+        # 如果文件不存在，尝试加载同名的模板文件
         for file_path in prompt_dir.glob("*.md"):
-            content = file_path.read_text(encoding='utf-8')
             try:
+                content = file_path.read_text(encoding='utf-8')
                 front_matter, _ = parse_front_matter(content)
                 if front_matter.get('name') == name:
                     prompt_file = file_path
                     break
             except Exception:
                 continue
+        
+        if prompt_file:
+            break
 
-    if not prompt_file.exists():
-        raise ValueError(f"Prompt file for '{name}' not found")
+    if not prompt_file or not prompt_file.exists():
+        raise ValueError(f"Prompt file for '{name}' not found in any of the configured directories")
 
     # 读取文件内容
     content = prompt_file.read_text(encoding='utf-8')
