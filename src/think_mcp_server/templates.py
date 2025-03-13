@@ -14,6 +14,22 @@ max_tokens_limit=89600
 
 # 内容分析工具配置
 content_analyzer_prompt_path=~/.think-mcp-server/resources/tool_content_analyzer_prompt.md
+
+# 语音识别配置
+# 科大讯飞API凭证
+xunfei_app_id=your_app_id_here
+xunfei_api_key=your_api_key_here
+xunfei_api_secret=your_api_secret_here
+
+# 百度API凭证
+baidu_app_id=your_app_id_here
+baidu_api_key=your_api_key_here
+baidu_secret_key=your_secret_key_here
+
+# 字节跳动API凭证
+bytedance_app_id=your_app_id_here
+bytedance_api_key=your_api_key_here
+bytedance_secret_key=your_secret_key_here
 """
 
 # .env 文件模板 - Windows 系统
@@ -29,6 +45,22 @@ max_tokens_limit=89600
 
 # 内容分析工具配置
 content_analyzer_prompt_path={home_dir}/.think-mcp-server/resources/tool_content_analyzer_prompt.md
+
+# 语音识别配置
+# 科大讯飞API凭证
+xunfei_app_id=your_app_id_here
+xunfei_api_key=your_api_key_here
+xunfei_api_secret=your_api_secret_here
+
+# 百度API凭证
+baidu_app_id=your_app_id_here
+baidu_api_key=your_api_key_here
+baidu_secret_key=your_secret_key_here
+
+# 字节跳动API凭证
+bytedance_app_id=your_app_id_here
+bytedance_api_key=your_api_key_here
+bytedance_secret_key=your_secret_key_here
 """
 
 # 内容分析工具提示词模板
